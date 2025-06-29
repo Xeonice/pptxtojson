@@ -1,6 +1,6 @@
 {
   "name": "pptx2pptistjson",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "A TypeScript/JavaScript tool for converting .pptx files to PPTist-compatible JSON format",
   "scripts": {
     "dev": "next dev",
