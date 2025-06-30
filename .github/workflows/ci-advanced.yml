@@ -2,24 +2,24 @@ name: Advanced CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, master, develop, release/** ]
+    branches: [main, master, develop, release/**]
   pull_request:
-    branches: [ main, master, develop ]
+    branches: [main, master, develop]
   schedule:
     # Run tests daily at 2 AM UTC
-    - cron: '0 2 * * *'
+    - cron: "0 2 * * *"
   workflow_dispatch:
     inputs:
       test_type:
-        description: 'Type of tests to run'
+        description: "Type of tests to run"
         required: true
-        default: 'all'
+        default: "all"
         type: choice
         options:
-        - all
-        - unit
-        - integration
-        - coverage
+          - all
+          - unit
+          - integration
+          - coverage
 
 env:
   NODE_ENV: test
@@ -31,31 +31,31 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       cache-key: ${{ steps.cache-key.outputs.key }}
-    
+
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        cache: 'npm'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          cache: "npm"
 
-    - name: Generate cache key
-      id: cache-key
-      run: echo "key=node-modules-${{ hashFiles('package-lock.json') }}" >> $GITHUB_OUTPUT
+      - name: Generate cache key
+        id: cache-key
+        run: echo "key=node-modules-${{ hashFiles('package-lock.json') }}" >> $GITHUB_OUTPUT
 
-    - name: Cache node modules
-      uses: actions/cache@v4
-      with:
-        path: node_modules
-        key: ${{ steps.cache-key.outputs.key }}
-        restore-keys: |
-          node-modules-
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ steps.cache-key.outputs.key }}
+          restore-keys: |
+            node-modules-
 
-    - name: Install dependencies
-      run: npm ci --prefer-offline --no-audit
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
 
   lint-and-type-check:
     name: Lint & Type Check
@@ -63,32 +63,32 @@ jobs:
     needs: setup
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        cache: 'npm'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          cache: "npm"
 
-    - name: Restore node modules
-      uses: actions/cache@v4
-      with:
-        path: node_modules
-        key: ${{ needs.setup.outputs.cache-key }}
-        restore-keys: |
-          node-modules-
+      - name: Restore node modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
+          restore-keys: |
+            node-modules-
 
-    - name: Install dependencies (if cache miss)
-      run: npm ci --prefer-offline --no-audit
+      - name: Install dependencies (if cache miss)
+        run: npm ci --prefer-offline --no-audit
 
-    - name: Run TypeScript type checking
-      run: npm run type-check
+      - name: Run TypeScript type checking
+        run: npm run type-check
 
-    - name: Run ESLint
-      run: npm run lint
-      continue-on-error: true
+      - name: Run ESLint
+        run: npm run lint
+        continue-on-error: true
 
   test-unit:
     name: Unit Tests
@@ -107,49 +107,49 @@ jobs:
           - "integration"
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
 
-    - name: Restore node modules
-      uses: actions/cache@v4
-      with:
-        path: node_modules
-        key: ${{ needs.setup.outputs.cache-key }}
-        restore-keys: |
-          node-modules-
+      - name: Restore node modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
+          restore-keys: |
+            node-modules-
 
-    - name: Install dependencies (if cache miss)
-      run: npm ci --prefer-offline --no-audit
+      - name: Install dependencies (if cache miss)
+        run: npm ci --prefer-offline --no-audit
 
-    - name: Run unit tests
-      run: |
-        if [[ "${{ matrix.test-group }}" == "utils color" ]]; then
-          npx jest --testPathPatterns="(utils|color)" --coverage --coverageReporters=text --coverageReporters=lcov
-        elif [[ "${{ matrix.test-group }}" == "models elements" ]]; then
-          npx jest --testPathPatterns="(models|elements|shape-element)" --coverage --coverageReporters=text --coverageReporters=lcov
-        elif [[ "${{ matrix.test-group }}" == "services processors" ]]; then
-          npx jest --testPathPatterns="(services|processors|shape-processor)" --coverage --coverageReporters=text --coverageReporters=lcov
-        elif [[ "${{ matrix.test-group }}" == "integration" ]]; then
-          npx jest --testPathPatterns="integration" --coverage --coverageReporters=text --coverageReporters=lcov
-        fi
-      env:
-        NODE_OPTIONS: --max_old_space_size=4096
+      - name: Run unit tests
+        run: |
+          if [[ "${{ matrix.test-group }}" == "utils color" ]]; then
+            npx jest --testPathPatterns="(utils|color)" --coverage --coverageReporters=text --coverageReporters=lcov
+          elif [[ "${{ matrix.test-group }}" == "models elements" ]]; then
+            npx jest --testPathPatterns="(models|elements|shape-element)" --coverage --coverageReporters=text --coverageReporters=lcov
+          elif [[ "${{ matrix.test-group }}" == "services processors" ]]; then
+            npx jest --testPathPatterns="(services|processors|shape-processor)" --coverage --coverageReporters=text --coverageReporters=lcov
+          elif [[ "${{ matrix.test-group }}" == "integration" ]]; then
+            npx jest --testPathPatterns="integration" --coverage --coverageReporters=text --coverageReporters=lcov
+          fi
+        env:
+          NODE_OPTIONS: --max_old_space_size=4096
 
-    - name: Upload test results
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: test-results-${{ matrix.node-version }}-${{ matrix.test-group }}
-        path: |
-          coverage/
-          junit.xml
-        retention-days: 30
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.node-version }}-${{ matrix.test-group }}
+          path: |
+            coverage/
+            junit.xml
+          retention-days: 30
 
   test-integration:
     name: Integration Tests
@@ -158,46 +158,46 @@ jobs:
     if: github.event.inputs.test_type == 'all' || github.event.inputs.test_type == 'integration' || github.event.inputs.test_type == ''
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        cache: 'npm'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          cache: "npm"
 
-    - name: Restore node modules
-      uses: actions/cache@v4
-      with:
-        path: node_modules
-        key: ${{ needs.setup.outputs.cache-key }}
-        restore-keys: |
-          node-modules-
+      - name: Restore node modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
+          restore-keys: |
+            node-modules-
 
-    - name: Install dependencies (if cache miss)
-      run: npm ci --prefer-offline --no-audit
+      - name: Install dependencies (if cache miss)
+        run: npm ci --prefer-offline --no-audit
 
-    - name: Run integration tests
-      run: |
-        npx jest --testPathPatterns="(integration|pptx-parser|output-comparison)" \
-                 --coverage \
-                 --coverageReporters=lcov,text,html \
-                 --verbose \
-                 --detectOpenHandles \
-                 --forceExit
-      env:
-        NODE_OPTIONS: --max_old_space_size=6144
+      - name: Run integration tests
+        run: |
+          npx jest --testPathPatterns="(integration|pptx-parser|output-comparison)" \
+                   --coverage \
+                   --coverageReporters=lcov,text,html \
+                   --verbose \
+                   --detectOpenHandles \
+                   --forceExit
+        env:
+          NODE_OPTIONS: --max_old_space_size=6144
 
-    - name: Upload integration test results
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: integration-test-results
-        path: |
-          coverage/
-          test-results/
-        retention-days: 30
+      - name: Upload integration test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results
+          path: |
+            coverage/
+            test-results/
+          retention-days: 30
 
   test-coverage:
     name: Coverage Report
@@ -206,66 +206,67 @@ jobs:
     if: always() && (github.event.inputs.test_type == 'all' || github.event.inputs.test_type == 'coverage' || github.event.inputs.test_type == '')
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        cache: 'npm'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          cache: "npm"
 
-    - name: Restore node modules
-      uses: actions/cache@v4
-      with:
-        path: node_modules
-        key: ${{ needs.setup.outputs.cache-key }}
-        restore-keys: |
-          node-modules-
+      - name: Restore node modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
+          restore-keys: |
+            node-modules-
 
-    - name: Install dependencies (if cache miss)
-      run: npm ci --prefer-offline --no-audit
+      - name: Install dependencies (if cache miss)
+        run: npm ci --prefer-offline --no-audit
 
-    - name: Run all tests with coverage
-      run: npm run test:coverage
-      env:
-        NODE_OPTIONS: --max_old_space_size=8192
+      - name: Run all tests with coverage
+        run: npm run test:coverage
+        env:
+          NODE_OPTIONS: --max_old_space_size=8192
 
-    - name: Generate coverage badge
-      if: hashFiles('coverage/coverage-summary.json') != ''
-      uses: jaywcjlove/coverage-badges-cli@main
-      with:
-        source: coverage/coverage-summary.json
-        output: coverage/badge.svg
-      continue-on-error: true
+      - name: Generate coverage badge
+        if: hashFiles('coverage/coverage-summary.json') != ''
+        uses: jaywcjlove/coverage-badges-cli@main
+        with:
+          source: coverage/coverage-summary.json
+          output: coverage/badge.svg
+        continue-on-error: true
 
-    - name: Upload coverage to Codecov
-      if: hashFiles('coverage/lcov.info') != ''
-      uses: codecov/codecov-action@v4
-      with:
-        file: ./coverage/lcov.info
-        flags: unittests
-        name: pptx2pptistjson-coverage
-        fail_ci_if_error: false
-        verbose: true
+      - name: Upload coverage to Codecov
+        if: hashFiles('coverage/lcov.info') != ''
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: pptx2pptistjson-coverage
+          fail_ci_if_error: false
+          verbose: true
 
-    - name: Comment coverage on PR
-      if: github.event_name == 'pull_request'
-      uses: marocchino/sticky-pull-request-comment@v2
-      with:
-        recreate: true
-        message: |
-          ## 📊 Test Coverage Report
-          
-          Coverage information will be available once Codecov processes the report.
-          
-          **Test Summary:**
-          - ✅ Unit Tests: Completed
-          - ✅ Integration Tests: Completed  
-          - ✅ Type Checking: Passed
-          - ✅ Linting: Passed
-          
-          [View detailed coverage report](https://codecov.io/gh/${{ github.repository }})
+      - name: Comment coverage on PR
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          recreate: true
+          message: |
+            ## 📊 Test Coverage Report
+
+            Coverage information will be available once Codecov processes the report.
+
+            **Test Summary:**
+            - ✅ Unit Tests: Completed
+            - ✅ Integration Tests: Completed  
+            - ✅ Type Checking: Passed
+            - ✅ Linting: Passed
+
+            [View detailed coverage report](https://codecov.io/gh/${{ github.repository }})
 
   build-and-test:
     name: Build & Production Test
@@ -273,53 +274,53 @@ jobs:
     needs: [setup, lint-and-type-check]
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-        cache: 'npm'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.x"
+          cache: "npm"
 
-    - name: Restore node modules
-      uses: actions/cache@v4
-      with:
-        path: node_modules
-        key: ${{ needs.setup.outputs.cache-key }}
-        restore-keys: |
-          node-modules-
+      - name: Restore node modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
+          restore-keys: |
+            node-modules-
 
-    - name: Install dependencies (if cache miss)
-      run: npm ci --prefer-offline --no-audit
+      - name: Install dependencies (if cache miss)
+        run: npm ci --prefer-offline --no-audit
 
-    - name: Build application
-      run: npm run build
+      - name: Build application
+        run: npm run build
 
-    - name: Test production build
-      run: |
-        # Test if the built application can start
-        npm start &
-        SERVER_PID=$!
-        
-        # Wait for server to start
-        sleep 10
-        
-        # Health check
-        curl -f http://localhost:3000 || echo "Health check failed"
-        
-        # Clean up
-        kill $SERVER_PID || true
-      continue-on-error: true
+      - name: Test production build
+        run: |
+          # Test if the built application can start
+          npm start &
+          SERVER_PID=$!
 
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: production-build
-        path: |
-          .next/
-          out/
-        retention-days: 7
+          # Wait for server to start
+          sleep 10
+
+          # Health check
+          curl -f http://localhost:3000 || echo "Health check failed"
+
+          # Clean up
+          kill $SERVER_PID || true
+        continue-on-error: true
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-build
+          path: |
+            .next/
+            out/
+          retention-days: 7
 
   security-scan:
     name: Security Scan
@@ -327,20 +328,20 @@ jobs:
     needs: setup
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Run npm audit
-      run: npm audit --audit-level=moderate
-      continue-on-error: true
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
 
-    - name: Run Snyk security scan
-      uses: snyk/actions/node@master
-      env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      with:
-        args: --severity-threshold=high
-      continue-on-error: true
+      - name: Run Snyk security scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+        continue-on-error: true
 
   notify:
     name: Notification
@@ -349,30 +350,30 @@ jobs:
     if: always()
 
     steps:
-    - name: Determine workflow status
-      id: status
-      run: |
-        if [[ "${{ needs.test-unit.result }}" == "success" && 
-              "${{ needs.test-integration.result }}" == "success" && 
-              "${{ needs.test-coverage.result }}" == "success" && 
-              "${{ needs.build-and-test.result }}" == "success" ]]; then
-          echo "status=✅ SUCCESS" >> $GITHUB_OUTPUT
-          echo "color=success" >> $GITHUB_OUTPUT
-        else
-          echo "status=❌ FAILURE" >> $GITHUB_OUTPUT  
-          echo "color=failure" >> $GITHUB_OUTPUT
-        fi
+      - name: Determine workflow status
+        id: status
+        run: |
+          if [[ "${{ needs.test-unit.result }}" == "success" && 
+                "${{ needs.test-integration.result }}" == "success" && 
+                "${{ needs.test-coverage.result }}" == "success" && 
+                "${{ needs.build-and-test.result }}" == "success" ]]; then
+            echo "status=✅ SUCCESS" >> $GITHUB_OUTPUT
+            echo "color=success" >> $GITHUB_OUTPUT
+          else
+            echo "status=❌ FAILURE" >> $GITHUB_OUTPUT  
+            echo "color=failure" >> $GITHUB_OUTPUT
+          fi
 
-    - name: Create status check
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const { data: pullRequest } = await github.rest.repos.createCommitStatus({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            sha: context.sha,
-            state: '${{ steps.status.outputs.color }}' === 'success' ? 'success' : 'failure',
-            target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
-            description: '${{ steps.status.outputs.status }}',
-            context: 'Test Suite / Advanced CI'
-          });
+      - name: Create status check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pullRequest } = await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              state: '${{ steps.status.outputs.color }}' === 'success' ? 'success' : 'failure',
+              target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              description: '${{ steps.status.outputs.status }}',
+              context: 'Test Suite / Advanced CI'
+            });

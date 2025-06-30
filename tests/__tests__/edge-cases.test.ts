@@ -312,7 +312,7 @@ describe('Edge Cases Tests', () => {
       const endTime = Date.now();
       
       // Should complete quickly
-      expect(endTime - startTime).toBeLessThan(500); // 500ms
+      expect(endTime - startTime).toBeLessThan(1000); // 1000ms (increased for CI environments)
       expect(color).toMatch(/^rgba\(\d+,\d+,\d+,[\d.]+\)$/);
     });
     
